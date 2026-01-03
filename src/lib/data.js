@@ -242,7 +242,8 @@ export const formatCurrency = (value) => {
   return value.toLocaleString("es-EC", {
     style: "currency",
     currency: "USD",
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   });
 };
 
