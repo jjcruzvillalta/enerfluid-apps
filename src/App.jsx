@@ -2263,7 +2263,7 @@ export default function App() {
       </div>
 
       <Dialog open={brandModal.open} onOpenChange={(open) => setBrandModal((prev) => ({ ...prev, open }))}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto">
+        <DialogContent className="w-[96vw] max-w-6xl max-h-[90vh] overflow-y-auto">
           <DialogClose asChild>
             <button
               type="button"
@@ -2279,7 +2279,7 @@ export default function App() {
               Ventana: {replenishmentData?.monthsWindow || "-"} meses | Lead time: {formatNumber(replenishmentData?.leadTimeMonths ?? 0, 1)} meses | Min: {formatNumber(replenishmentData?.minCoverageMonths ?? 0, 1)} meses | Objetivo: {formatNumber(replenishmentData?.coverageTarget ?? 0, 1)} meses
             </p>
           </DialogHeader>
-          <div className="mt-4 max-h-[260px] overflow-auto rounded-2xl border border-line">
+          <div className="mt-4 max-h-[60vh] overflow-auto rounded-2xl border border-line">
             <table className="w-full text-xs">
               <thead className="bg-mist text-[11px] uppercase text-slate-500">
                 <tr>
