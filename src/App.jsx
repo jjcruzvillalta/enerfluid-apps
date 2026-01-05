@@ -198,9 +198,14 @@ const LoginScreen = ({ email, password, onEmailChange, onPasswordChange, onLogin
     <div className="grid w-full max-w-4xl overflow-hidden rounded-[32px] glass-panel md:grid-cols-[1.1fr_0.9fr]">
       <div
         className="relative hidden overflow-hidden md:flex flex-col justify-between p-10 text-white"
-        style={{ backgroundImage: "url(/login-hero.png)" }}
+        style={{
+          backgroundImage: "url(/login-hero.png)",
+          backgroundRepeat: "no-repeat",
+          backgroundSize: "auto 100%",
+          backgroundPosition: "center",
+        }}
       >
-        <div className="absolute inset-0 bg-gradient-to-br from-navy/95 via-slate-900/90 to-ink/85" />
+        <div className="absolute inset-0 bg-gradient-to-br from-navy/70 via-slate-900/55 to-ink/45" />
         <div className="relative z-10 flex items-center gap-3">
           <img src="/enerfluid-logo.png" alt="Enerfluid" className="h-9" />
           <div>
