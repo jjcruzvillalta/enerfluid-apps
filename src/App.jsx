@@ -2029,7 +2029,7 @@ export default function App() {
                 <CardHeader>
                   <CardTitle>Ventas por cliente</CardTitle>
                   <CardDescription>
-                    Top 10 clientes por anio (ordenados de mayor a menor). El resto se agrupa en "Otros".
+                    Top 10 clientes por anio (ordenados de mayor a menor). El resto se agrupa en &quot;Otros&quot;.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -2353,7 +2353,7 @@ export default function App() {
           <Card className="mt-4">
             <CardHeader>
               <CardTitle>Ventas por cliente (item)</CardTitle>
-              <CardDescription>Top 10 clientes por anio para este item. El resto se agrupa en "Otros".</CardDescription>
+              <CardDescription>Top 10 clientes por anio para este item. El resto se agrupa en &quot;Otros&quot;.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-64">
