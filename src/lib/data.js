@@ -279,6 +279,70 @@ export const formatCurrency = (value) => {
   });
 };
 
+export const buildPoints = (dates, values) =>
+  (dates || []).map((date, index) => ({
+    x: date,
+    y: values?.[index] ?? null,
+  }));
+
+export const getTimeUnit = (period) => {
+  if (period === "day") return "day";
+  if (period === "week") return "week";
+  if (period === "month") return "month";
+  return "year";
+};
+
+export const formatTick = (value, period) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  if (period === "day") {
+    return date.toLocaleDateString("es-EC", { day: "2-digit", month: "2-digit" });
+  }
+  if (period === "week") {
+    const { week, year } = isoWeek(date);
+    return `W${String(week).padStart(2, "0")}-${String(year).slice(2)}`;
+  }
+  if (period === "month") {
+    return `${String(date.getMonth() + 1).padStart(2, "0")}/${String(date.getFullYear()).slice(2)}`;
+  }
+  return String(date.getFullYear());
+};
+
+export const buildLineDistribution = (itemsIndex, selectedSet) => {
+  if (!itemsIndex) return null;
+  const totals = new Map();
+  itemsIndex.items.forEach((item) => {
+    if (selectedSet && !selectedSet.has(item.code)) return;
+    const value = Number.isFinite(item.stock) && Number.isFinite(item.cost) ? item.stock * item.cost : 0;
+    const key = item.line || "Sin linea";
+    totals.set(key, (totals.get(key) || 0) + value);
+  });
+  const entries = [...totals.entries()].filter((entry) => Number.isFinite(entry[1]) && entry[1] > 0);
+  if (!entries.length) return null;
+  entries.sort((a, b) => b[1] - a[1]);
+  const top = entries.slice(0, 8);
+  const others = entries.slice(8).reduce((sum, entry) => sum + entry[1], 0);
+  if (others > 0) top.push(["Otros", others]);
+  return top;
+};
+
+export const buildCatalogShare = (itemsIndex, selectedSet) => {
+  if (!itemsIndex) return null;
+  let catalogValue = 0;
+  let nonCatalogValue = 0;
+  itemsIndex.items.forEach((item) => {
+    if (selectedSet && !selectedSet.has(item.code)) return;
+    const value = Number.isFinite(item.stock) && Number.isFinite(item.cost) ? item.stock * item.cost : 0;
+    if (item.isCatalog) catalogValue += value;
+    else nonCatalogValue += value;
+  });
+  if (!catalogValue && !nonCatalogValue) return null;
+  return {
+    labels: ["Catalogo", "No catalogo"],
+    values: [catalogValue, nonCatalogValue],
+  };
+};
+
 export const buildCatalogIndex = (rows) => {
   const map = new Map();
   (rows || []).forEach((row) => {

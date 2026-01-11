@@ -3,6 +3,14 @@ node_modules/
 dist/
 build/
 **/.vite/
+.next/
+out/
+.turbo/
+.vercel/
+.swc/
+.cache/
+supabase/.temp/
+.env.local
 .env
 .env.*
 .DS_Store
