@@ -25,6 +25,7 @@ import {
   TimeScale,
   Tooltip,
   type ChartOptions,
+  type ChartDataset,
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 import {
@@ -214,6 +215,8 @@ const buildStackedBarOptions = (legendTotals?: Map<string, number> | null): Char
   },
 });
 
+type CustomerByYearDataset = ChartDataset<"bar"> & { customerByYear?: Record<string, string> };
+
 const customerStackedOptions: ChartOptions<"bar"> = {
   responsive: true,
   maintainAspectRatio: false,
@@ -222,9 +225,10 @@ const customerStackedOptions: ChartOptions<"bar"> = {
     tooltip: {
       callbacks: {
         label(context) {
-          const year = context.label;
-          const customer = context.dataset.customerByYear?.[year];
-          const label = customer || context.dataset.label;
+          const year = String(context.label ?? "");
+          const dataset = context.dataset as CustomerByYearDataset;
+          const customer = dataset.customerByYear?.[year];
+          const label = customer || dataset.label;
           return `${label}: ${formatCurrency(context.parsed.y)}`;
         },
       },
