@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,8 @@ const apps = [
 ];
 
 export default function PortalPage() {
-  const { user, loading, canAccess } = useAuth();
+  const router = useRouter();
+  const { user, loading, canAccess, logout } = useAuth();
 
   if (loading) {
     return <div className="flex min-h-screen items-center justify-center">Cargando...</div>;
@@ -32,13 +34,23 @@ export default function PortalPage() {
     );
   }
 
+  const handleLogout = async () => {
+    await logout();
+    router.push("/login");
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-white via-cloud to-mist px-6 py-10">
       <div className="mx-auto max-w-6xl space-y-8">
-        <div>
-          <p className="text-sm text-slate-500">Bienvenido, {user.displayName || user.username}</p>
-          <h1 className="text-3xl font-semibold text-slate-900">Enerfluid Apps</h1>
-          <p className="text-sm text-slate-500">Portal de acceso a todas las aplicaciones.</p>
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-sm text-slate-500">Bienvenido, {user.displayName || user.username}</p>
+            <h1 className="text-3xl font-semibold text-slate-900">Enerfluid Apps</h1>
+            <p className="text-sm text-slate-500">Portal de acceso a todas las aplicaciones.</p>
+          </div>
+          <Button variant="outline" className="self-start" onClick={handleLogout}>
+            Cerrar sesion
+          </Button>
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">

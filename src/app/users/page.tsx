@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { X } from "lucide-react";
 
 type RoleMap = Record<string, string>;
 
@@ -24,6 +26,7 @@ const defaultRoles: RoleMap = {
 export default function UsersPage() {
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState<{
     username: string;
     displayName: string;
@@ -72,6 +75,7 @@ export default function UsersPage() {
     });
     if (res.ok) {
       resetForm();
+      setDialogOpen(false);
       loadUsers();
     }
   };
@@ -95,60 +99,24 @@ export default function UsersPage() {
 
   return (
     <div className="space-y-6">
-      <Card className="p-6">
-        <h3 className="text-sm font-semibold text-slate-700">{editingId ? "Editar usuario" : "Nuevo usuario"}</h3>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <Input
-            placeholder="Usuario"
-            value={form.username}
-            onChange={(event) => setForm((prev) => ({ ...prev, username: event.target.value }))}
-          />
-          <Input
-            placeholder="Nombre visible"
-            value={form.displayName}
-            onChange={(event) => setForm((prev) => ({ ...prev, displayName: event.target.value }))}
-          />
-          <Input
-            placeholder="Clave"
-            type="password"
-            value={form.password}
-            onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))}
-          />
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-slate-800">Usuarios</h1>
+          <p className="text-sm text-slate-500">Gestion de accesos y roles por app.</p>
         </div>
-        <div className="mt-4 grid gap-3 md:grid-cols-4">
-          {Object.keys(defaultRoles).map((appKey) => (
-            <label key={appKey} className="text-xs text-slate-600">
-              {appKey}
-              <select
-                className="mt-1 h-10 w-full rounded-xl border border-line bg-white px-3 text-sm text-ink shadow-sm"
-                value={form.roles[appKey]}
-                onChange={(event) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    roles: { ...prev.roles, [appKey]: event.target.value },
-                  }))
-                }
-              >
-                <option value="none">none</option>
-                <option value="standard">standard</option>
-                <option value="admin">admin</option>
-              </select>
-            </label>
-          ))}
-        </div>
-        <div className="mt-4 flex gap-2">
-          <Button onClick={handleSubmit}>{editingId ? "Guardar cambios" : "Crear usuario"}</Button>
-          {editingId ? (
-            <Button variant="outline" onClick={resetForm}>
-              Cancelar
-            </Button>
-          ) : null}
-        </div>
-      </Card>
+        <Button
+          onClick={() => {
+            resetForm();
+            setDialogOpen(true);
+          }}
+        >
+          Nuevo usuario
+        </Button>
+      </div>
 
       <Card className="p-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-slate-700">Usuarios</h3>
+          <h3 className="text-sm font-semibold text-slate-700">Listado</h3>
           <span className="text-xs text-slate-400">{loading ? "Cargando..." : `${users.length} usuarios`}</span>
         </div>
         <div className="mt-4 overflow-x-auto">
@@ -177,7 +145,14 @@ export default function UsersPage() {
                     })}
                   </td>
                   <td className="px-3 py-2 text-right space-x-2">
-                    <Button size="sm" variant="outline" onClick={() => startEdit(row)}>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        startEdit(row);
+                        setDialogOpen(true);
+                      }}
+                    >
                       Editar
                     </Button>
                     <Button size="sm" variant="outline" onClick={() => handleDelete(row.id)}>
@@ -197,6 +172,83 @@ export default function UsersPage() {
           </table>
         </div>
       </Card>
+
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) resetForm();
+        }}
+      >
+        <DialogContent className="w-[96vw] max-w-2xl">
+          <DialogClose asChild>
+            <button
+              type="button"
+              className="absolute right-4 top-4 rounded-full border border-line bg-white p-1 text-slate-500 shadow-sm hover:text-slate-700"
+              aria-label="Cerrar"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </DialogClose>
+          <DialogHeader>
+            <DialogTitle>{editingId ? "Editar usuario" : "Nuevo usuario"}</DialogTitle>
+            <p className="text-sm text-slate-500">
+              {editingId ? "Actualiza datos y roles del usuario." : "Completa los datos para crear un nuevo usuario."}
+            </p>
+          </DialogHeader>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <Input
+              placeholder="Usuario"
+              value={form.username}
+              onChange={(event) => setForm((prev) => ({ ...prev, username: event.target.value }))}
+            />
+            <Input
+              placeholder="Nombre visible"
+              value={form.displayName}
+              onChange={(event) => setForm((prev) => ({ ...prev, displayName: event.target.value }))}
+            />
+            <div className="md:col-span-2">
+              <Input
+                placeholder={editingId ? "Nueva clave (opcional)" : "Clave"}
+                type="password"
+                value={form.password}
+                onChange={(event) => setForm((prev) => ({ ...prev, password: event.target.value }))}
+              />
+              {editingId ? <p className="mt-1 text-xs text-slate-400">Deja en blanco para mantener la clave actual.</p> : null}
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-4">
+            {Object.keys(defaultRoles).map((appKey) => (
+              <label key={appKey} className="text-xs text-slate-600">
+                {appKey}
+                <select
+                  className="mt-1 h-10 w-full rounded-xl border border-line bg-white px-3 text-sm text-ink shadow-sm"
+                  value={form.roles[appKey]}
+                  onChange={(event) =>
+                    setForm((prev) => ({
+                      ...prev,
+                      roles: { ...prev.roles, [appKey]: event.target.value },
+                    }))
+                  }
+                >
+                  <option value="none">none</option>
+                  <option value="standard">standard</option>
+                  <option value="admin">admin</option>
+                </select>
+              </label>
+            ))}
+          </div>
+
+          <div className="mt-6 flex items-center justify-end gap-2">
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSubmit}>{editingId ? "Guardar cambios" : "Crear usuario"}</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
