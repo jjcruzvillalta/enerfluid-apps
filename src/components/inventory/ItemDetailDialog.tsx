@@ -28,6 +28,8 @@ import {
   PointElement,
   TimeScale,
   Tooltip,
+  type ChartOptions,
+  type TimeUnit,
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 import { X } from "lucide-react";
@@ -56,7 +58,7 @@ type ItemDetailDialogProps = {
   inventoryRange: InventoryRange;
 };
 
-const buildLineOptions = (period: string, labelFormatter: (value: number) => string) => ({
+const buildLineOptions = (period: string, labelFormatter: (value: number) => string): ChartOptions<"line"> => ({
   responsive: true,
   maintainAspectRatio: false,
   interaction: { mode: "index" as const, intersect: false },
@@ -82,7 +84,7 @@ const buildLineOptions = (period: string, labelFormatter: (value: number) => str
   scales: {
     x: {
       type: "time" as const,
-      time: { unit: getTimeUnit(period) },
+      time: { unit: getTimeUnit(period) as TimeUnit },
       ticks: {
         color: "#64748b",
         maxRotation: 0,
