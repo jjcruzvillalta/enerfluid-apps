@@ -167,7 +167,7 @@ const pieOptions = {
   },
 };
 
-const buildStackedBarOptions = (legendTotals) => ({
+const buildStackedBarOptions = (legendTotals?: Map<string, number> | null): ChartOptions<"bar"> => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
@@ -214,7 +214,7 @@ const buildStackedBarOptions = (legendTotals) => ({
   },
 });
 
-const customerStackedOptions = {
+const customerStackedOptions: ChartOptions<"bar"> = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
