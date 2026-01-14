@@ -131,66 +131,9 @@ export default function CrmLayout({ children }) {
         <div className="mx-auto flex w-full max-w-screen-2xl flex-col gap-6 px-4 py-6 md:px-8 lg:px-10">
           <Card className="glass-panel">
             <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div className="flex items-start gap-3">
-                <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
-                  <SheetTrigger asChild>
-                    <Button variant="outline" size="icon" className="lg:hidden">
-                      <Menu className="h-4 w-4" />
-                      <span className="sr-only">Abrir menu</span>
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="left" className="flex flex-col gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-lg bg-slate-900 text-white flex items-center justify-center text-sm font-bold">
-                        C
-                      </div>
-                      <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
-                          Enerfluid Apps
-                        </p>
-                        <p className="text-sm font-semibold text-slate-700">CRM</p>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      {navItems.map((item) => (
-                        <SheetClose asChild key={item.href}>
-                          <NavButton href={item.href} icon={item.icon}>
-                            {item.label}
-                          </NavButton>
-                        </SheetClose>
-                      ))}
-                    </div>
-                    <div className="mt-auto border-t pt-4">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-xs">
-                          {greeting[0]?.toUpperCase()}
-                        </div>
-                        <div className="text-xs overflow-hidden">
-                          <p className="font-medium text-slate-700 truncate">{greeting}</p>
-                          <p className="text-slate-400">Sesion activa</p>
-                        </div>
-                      </div>
-                      <SheetClose asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full gap-2 text-slate-500"
-                          onClick={async () => {
-                            await logout();
-                            router.push("/login");
-                          }}
-                        >
-                          <LogOut className="h-4 w-4" />
-                          Cerrar sesion
-                        </Button>
-                      </SheetClose>
-                    </div>
-                  </SheetContent>
-                </Sheet>
-                <div>
-                  <p className="text-sm text-slate-500">Hola, {greeting}</p>
-                  <h2 className="text-xl font-semibold text-ink">Enerfluid CRM</h2>
-                </div>
+              <div>
+                <p className="text-sm text-slate-500">Hola, {greeting}</p>
+                <h2 className="text-xl font-semibold text-ink">Enerfluid CRM</h2>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <Button variant="outline" className="relative" onClick={() => setNotificationsOpen(true)}>
@@ -209,6 +152,64 @@ export default function CrmLayout({ children }) {
               </div>
             </CardHeader>
           </Card>
+          <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
+            <div className="flex items-center justify-between rounded-2xl border border-line bg-white px-4 py-3 shadow-soft lg:hidden">
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon">
+                  <Menu className="h-4 w-4" />
+                  <span className="sr-only">Abrir menu</span>
+                </Button>
+              </SheetTrigger>
+              <div className="text-sm font-semibold text-slate-700">Enerfluid CRM</div>
+            </div>
+            <SheetContent side="left" className="flex flex-col gap-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-slate-900 text-white flex items-center justify-center text-sm font-bold">
+                  C
+                </div>
+                <div>
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400">
+                    Enerfluid Apps
+                  </p>
+                  <p className="text-sm font-semibold text-slate-700">CRM</p>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                {navItems.map((item) => (
+                  <SheetClose asChild key={item.href}>
+                    <NavButton href={item.href} icon={item.icon}>
+                      {item.label}
+                    </NavButton>
+                  </SheetClose>
+                ))}
+              </div>
+              <div className="mt-auto border-t pt-4">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-xs">
+                    {greeting[0]?.toUpperCase()}
+                  </div>
+                  <div className="text-xs overflow-hidden">
+                    <p className="font-medium text-slate-700 truncate">{greeting}</p>
+                    <p className="text-slate-400">Sesion activa</p>
+                  </div>
+                </div>
+                <SheetClose asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-2 text-slate-500"
+                    onClick={async () => {
+                      await logout();
+                      router.push("/login");
+                    }}
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Cerrar sesion
+                  </Button>
+                </SheetClose>
+              </div>
+            </SheetContent>
+          </Sheet>
           {children}
         </div>
       </main>
