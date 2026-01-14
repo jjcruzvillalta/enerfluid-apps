@@ -106,43 +106,100 @@ create table if not exists upload_logs (
 ```
 create table if not exists crm_clients (
   id uuid primary key default gen_random_uuid(),
+  external_id text unique,
   name text not null,
   industry text,
   city text,
   owner text,
-  created_at timestamptz default now()
+  client_type text,
+  relation text,
+  potential text,
+  tags text[],
+  address text,
+  state text,
+  country text,
+  postal_code text,
+  meta jsonb default '{}'::jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
 
 create table if not exists crm_contacts (
   id uuid primary key default gen_random_uuid(),
+  external_id text unique,
   client_id uuid references crm_clients(id) on delete cascade,
   name text not null,
   role text,
   phone text,
   email text,
-  created_at timestamptz default now()
+  area text,
+  tags text[],
+  meta jsonb default '{}'::jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
 
 create table if not exists crm_opportunities (
   id uuid primary key default gen_random_uuid(),
+  external_id text unique,
   client_id uuid references crm_clients(id) on delete set null,
+  contact_id uuid references crm_contacts(id) on delete set null,
   name text not null,
   stage text,
+  status text,
   value numeric,
+  weighted_value numeric,
+  probability numeric,
+  currency text,
+  pipeline text,
   owner text,
+  source text,
+  source_channel text,
+  lost_reason text,
+  expected_close_date date,
   close_date date,
-  created_at timestamptz default now()
+  last_stage_change_at timestamptz,
+  meta jsonb default '{}'::jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
 
 create table if not exists crm_activities (
   id uuid primary key default gen_random_uuid(),
+  external_id text unique,
   client_id uuid references crm_clients(id) on delete set null,
+  contact_id uuid references crm_contacts(id) on delete set null,
   opportunity_id uuid references crm_opportunities(id) on delete set null,
   title text not null,
+  type text,
+  outcome text,
+  notes text,
   status text,
   due_at timestamptz,
+  completed_at timestamptz,
+  duration_minutes integer,
+  location text,
+  priority text,
   owner text,
-  created_at timestamptz default now()
+  meta jsonb default '{}'::jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+create table if not exists crm_notes (
+  id uuid primary key default gen_random_uuid(),
+  external_id text unique,
+  title text,
+  content text,
+  client_id uuid references crm_clients(id) on delete set null,
+  contact_id uuid references crm_contacts(id) on delete set null,
+  opportunity_id uuid references crm_opportunities(id) on delete set null,
+  activity_id uuid references crm_activities(id) on delete set null,
+  owner text,
+  is_pinned boolean default false,
+  meta jsonb default '{}'::jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
 ```
 
@@ -169,4 +226,5 @@ alter table crm_clients disable row level security;
 alter table crm_contacts disable row level security;
 alter table crm_opportunities disable row level security;
 alter table crm_activities disable row level security;
+alter table crm_notes disable row level security;
 ```

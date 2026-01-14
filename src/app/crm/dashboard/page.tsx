@@ -1,24 +1,135 @@
 "use client";
 
+import React, { useEffect, useMemo, useState } from "react";
+import { Bar, Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  BarElement,
+  CategoryScale,
+  Legend,
+  LineElement,
+  LinearScale,
+  PointElement,
+  Tooltip,
+  type ChartOptions,
+} from "chart.js";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ChartWrap } from "@/components/inventory/ChartWrap";
+import { formatCurrency } from "@/lib/data";
 
-const stats = [
-  { label: "Clientes activos", value: "128" },
-  { label: "Oportunidades abiertas", value: "42" },
-  { label: "Actividades hoy", value: "18" },
-  { label: "Pipeline (USD)", value: "$2.4M" },
-];
+ChartJS.register(BarElement, CategoryScale, Legend, LineElement, LinearScale, PointElement, Tooltip);
 
-const pipeline = [
-  { stage: "Prospeccion", count: 12, value: "$420k" },
-  { stage: "Calificacion", count: 9, value: "$310k" },
-  { stage: "Propuesta", count: 11, value: "$780k" },
-  { stage: "Negociacion", count: 6, value: "$520k" },
-  { stage: "Cierre", count: 4, value: "$370k" },
-];
+type MetricsPayload = {
+  counts: {
+    clients: number;
+    contacts: number;
+    openDeals: number;
+    activitiesToday: number;
+    pipelineValue: number;
+  };
+  pipelineStages: { stage: string; count: number; value: number }[];
+  activitiesByWeek: { week: string; count: number }[];
+  recentActivities: {
+    id: string;
+    title: string;
+    due_at?: string | null;
+    created_at?: string | null;
+    owner?: string | null;
+    client_name?: string;
+  }[];
+};
+
+const barOptions: ChartOptions<"bar"> = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      callbacks: {
+        label(context) {
+          return formatCurrency(context.parsed.y);
+        },
+      },
+    },
+  },
+  scales: {
+    x: { ticks: { color: "#64748b", font: { size: 11 } }, grid: { display: false } },
+    y: { ticks: { color: "#64748b", font: { size: 11 } }, grid: { color: "rgba(15, 23, 42, 0.08)" } },
+  },
+};
+
+const lineOptions: ChartOptions<"line"> = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: { legend: { display: false } },
+  scales: {
+    x: { ticks: { color: "#64748b", font: { size: 11 } }, grid: { display: false } },
+    y: { ticks: { color: "#64748b", font: { size: 11 } }, grid: { color: "rgba(15, 23, 42, 0.08)" } },
+  },
+};
 
 export default function CrmDashboard() {
+  const [metrics, setMetrics] = useState<MetricsPayload | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch("/api/crm/metrics", { cache: "no-store", credentials: "include" });
+        if (!res.ok) return;
+        const data = await res.json();
+        setMetrics(data);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, []);
+
+  const stats = useMemo(() => {
+    const counts = metrics?.counts;
+    return [
+      { label: "Clientes activos", value: counts ? counts.clients : "-" },
+      { label: "Oportunidades abiertas", value: counts ? counts.openDeals : "-" },
+      { label: "Actividades hoy", value: counts ? counts.activitiesToday : "-" },
+      { label: "Pipeline (USD)", value: counts ? formatCurrency(counts.pipelineValue || 0) : "-" },
+    ];
+  }, [metrics]);
+
+  const pipelineChartData = useMemo(() => {
+    if (!metrics?.pipelineStages?.length) return null;
+    return {
+      labels: metrics.pipelineStages.map((row) => row.stage),
+      datasets: [
+        {
+          label: "Pipeline",
+          data: metrics.pipelineStages.map((row) => row.value || 0),
+          backgroundColor: "rgba(37, 99, 235, 0.75)",
+          borderRadius: 10,
+        },
+      ],
+    };
+  }, [metrics]);
+
+  const activitiesChartData = useMemo(() => {
+    if (!metrics?.activitiesByWeek?.length) return null;
+    return {
+      labels: metrics.activitiesByWeek.map((row) => row.week),
+      datasets: [
+        {
+          label: "Actividades",
+          data: metrics.activitiesByWeek.map((row) => row.count),
+          borderColor: "#0f172a",
+          backgroundColor: "rgba(15, 23, 42, 0.12)",
+          tension: 0.2,
+          pointRadius: 3,
+        },
+      ],
+    };
+  }, [metrics]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -38,39 +149,34 @@ export default function CrmDashboard() {
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-        <Card className="p-6">
-          <h2 className="text-sm font-semibold text-slate-700">Pipeline por etapa</h2>
-          <div className="mt-4 space-y-3">
-            {pipeline.map((row) => (
-              <div key={row.stage} className="flex items-center justify-between rounded-2xl border border-line px-4 py-3">
-                <div>
-                  <p className="text-sm font-semibold text-slate-700">{row.stage}</p>
-                  <p className="text-xs text-slate-500">{row.count} oportunidades</p>
-                </div>
-                <p className="text-sm font-semibold text-slate-800">{row.value}</p>
-              </div>
-            ))}
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <h2 className="text-sm font-semibold text-slate-700">Actividades recientes</h2>
-          <div className="mt-4 space-y-3">
-            {[
-              "Llamada con Enerpump - 10:00",
-              "Reunion con Acme - 11:30",
-              "Enviar propuesta a Maxis - 14:00",
-              "Seguimiento a TechFlow - 16:00",
-            ].map((item) => (
-              <div key={item} className="flex items-center justify-between text-sm text-slate-600">
-                <span>{item}</span>
-                <span className="text-xs text-slate-400">Pendiente</span>
-              </div>
-            ))}
-          </div>
-        </Card>
+      <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+        <ChartWrap title="Pipeline por etapa" empty={!pipelineChartData}>
+          {pipelineChartData && <Bar data={pipelineChartData} options={barOptions} />}
+        </ChartWrap>
+        <ChartWrap title="Actividades (12 semanas)" empty={!activitiesChartData}>
+          {activitiesChartData && <Line data={activitiesChartData} options={lineOptions} />}
+        </ChartWrap>
       </div>
+
+      <Card className="p-6">
+        <h2 className="text-sm font-semibold text-slate-700">Actividades recientes</h2>
+        <div className="mt-4 space-y-3">
+          {metrics?.recentActivities?.map((row) => {
+            const dateLabel = row.due_at || row.created_at;
+            return (
+              <div key={row.id} className="flex items-center justify-between text-sm text-slate-600">
+                <span>
+                  {row.title || "Actividad"} · {row.client_name || "-"}
+                </span>
+                <span className="text-xs text-slate-400">{dateLabel ? dateLabel.slice(0, 10) : "-"}</span>
+              </div>
+            );
+          })}
+          {!loading && !metrics?.recentActivities?.length ? (
+            <p className="text-sm text-slate-400">Sin actividades recientes.</p>
+          ) : null}
+        </div>
+      </Card>
     </div>
   );
 }
