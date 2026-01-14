@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
@@ -38,6 +38,8 @@ type NoteDetail = {
   activity?: { id: string; scheduled_at?: string | null } | null;
 };
 
+type UserOption = { id: string; username: string; display_name?: string | null };
+
 export function NoteDialog({
   open,
   noteId,
@@ -51,6 +53,9 @@ export function NoteDialog({
   const [saving, setSaving] = useState(false);
   const [detail, setDetail] = useState<NoteDetail | null>(null);
   const [draft, setDraft] = useState({ detail: "" });
+  const [users, setUsers] = useState<UserOption[]>([]);
+  const [mention, setMention] = useState<{ start: number; end: number; query: string } | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const isEdit = Boolean(noteId);
 
@@ -76,7 +81,67 @@ export function NoteDialog({
     load();
   }, [open, noteId]);
 
+  useEffect(() => {
+    if (!open) return;
+    const loadUsers = async () => {
+      const res = await fetch("/api/crm/users", { cache: "no-store", credentials: "include" });
+      if (!res.ok) return;
+      const data = await res.json();
+      setUsers(data?.users || []);
+    };
+    loadUsers();
+  }, [open]);
+
   const canSave = useMemo(() => draft.detail.trim().length > 0, [draft.detail]);
+
+  const mentionOptions = useMemo(() => {
+    if (!mention) return [];
+    const query = mention.query.toLowerCase();
+    return users
+      .filter((user) => {
+        const name = (user.display_name || user.username || "").toLowerCase();
+        const username = (user.username || "").toLowerCase();
+        return name.includes(query) || username.includes(query);
+      })
+      .slice(0, 6);
+  }, [mention, users]);
+
+  const updateMentionState = (value: string, caret: number) => {
+    const slice = value.slice(0, caret);
+    const atIndex = slice.lastIndexOf("@");
+    if (atIndex === -1) {
+      setMention(null);
+      return;
+    }
+    const query = slice.slice(atIndex + 1);
+    if (query.includes(" ") || query.includes("\n")) {
+      setMention(null);
+      return;
+    }
+    setMention({ start: atIndex, end: caret, query });
+  };
+
+  const handleChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = event.target.value;
+    const caret = event.target.selectionStart ?? value.length;
+    setDraft({ detail: value });
+    updateMentionState(value, caret);
+  };
+
+  const applyMention = (user: UserOption) => {
+    if (!mention) return;
+    const before = draft.detail.slice(0, mention.start);
+    const after = draft.detail.slice(mention.end);
+    const next = `${before}@${user.username} ${after}`;
+    setDraft({ detail: next });
+    setMention(null);
+    requestAnimationFrame(() => {
+      if (!textareaRef.current) return;
+      const caret = (before + `@${user.username} `).length;
+      textareaRef.current.focus();
+      textareaRef.current.setSelectionRange(caret, caret);
+    });
+  };
 
   const handleSave = async () => {
     if (!canSave) return;
@@ -132,12 +197,30 @@ export function NoteDialog({
 
             <DetailSection title="Contenido">
               <FieldRow label="Detalle" editing>
-                <textarea
-                  className="min-h-[140px] w-full rounded-xl border border-line bg-white px-3 py-2 text-sm text-ink shadow-sm focus:outline-none focus:ring-2 focus:ring-accent/40"
-                  value={draft.detail}
-                  onChange={(event) => setDraft({ detail: event.target.value })}
-                  placeholder="Escribe la nota y menciona con @usuario"
-                />
+                <div className="relative">
+                  <textarea
+                    ref={textareaRef}
+                    className="min-h-[140px] w-full rounded-xl border border-line bg-white px-3 py-2 text-sm text-ink shadow-sm focus:outline-none focus:ring-2 focus:ring-accent/40"
+                    value={draft.detail}
+                    onChange={handleChange}
+                    placeholder="Escribe la nota y menciona con @usuario"
+                  />
+                  {mention && mentionOptions.length ? (
+                    <div className="absolute left-0 right-0 top-full z-10 mt-2 rounded-xl border border-line bg-white p-2 shadow-card">
+                      {mentionOptions.map((user) => (
+                        <button
+                          key={user.id}
+                          type="button"
+                          className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-xs text-slate-600 hover:bg-mist"
+                          onClick={() => applyMention(user)}
+                        >
+                          <span className="font-semibold text-ink">@{user.username}</span>
+                          <span>{user.display_name || "-"}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
               </FieldRow>
             </DetailSection>
 

@@ -120,6 +120,8 @@ export function useCrmDialogs(options: UseCrmDialogsOptions = {}) {
         onOpenContact={openContact}
         onOpenOpportunity={openOpportunity}
         onOpenActivity={openActivity}
+        onCreateOpportunity={createOpportunity}
+        onCreateActivity={createActivity}
         onOpenNote={openNote}
         onCreateNote={createNote}
       />
@@ -132,6 +134,7 @@ export function useCrmDialogs(options: UseCrmDialogsOptions = {}) {
         onOpenClient={openClient}
         onOpenOpportunity={openOpportunity}
         onOpenActivity={openActivity}
+        onCreateActivity={createActivity}
         onOpenNote={openNote}
         onCreateNote={createNote}
       />
@@ -144,6 +147,7 @@ export function useCrmDialogs(options: UseCrmDialogsOptions = {}) {
         onOpenClient={openClient}
         onOpenContact={openContact}
         onOpenActivity={openActivity}
+        onCreateActivity={createActivity}
         onOpenNote={openNote}
         onCreateNote={createNote}
       />

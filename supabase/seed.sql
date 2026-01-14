@@ -260,3 +260,113 @@ insert into crm_notifications (user_id, note_id, actor_user_id, type, is_read)
 select m.mentioned_user_id, m.note_id, n.author_user_id, 'mention', false
 from crm_note_mentions m
 join crm_notes n on n.id = m.note_id;
+
+-- Datos de relleno (ultimos 12 meses)
+insert into crm_clients (name, client_type_id, city, detail, responsible_user_id, created_at, updated_at)
+select
+  'Cliente Mes ' || to_char(date_trunc('month', now() - (gs || ' months')::interval), 'YYYY-MM'),
+  (select id from crm_client_types order by sort_order limit 1 offset (gs % 2)),
+  (array['Quito','Guayaquil','Cuenca','Manta','Ambato'])[(gs % 5) + 1],
+  'Cliente generado para pruebas de CRM.',
+  (select id from app_users where username in ('camila','diego','sofia','marco') order by username limit 1 offset (gs % 4)),
+  date_trunc('month', now() - (gs || ' months')::interval) + interval '3 days',
+  date_trunc('month', now() - (gs || ' months')::interval) + interval '20 days'
+from generate_series(0, 11) gs
+where not exists (
+  select 1 from crm_clients
+  where name = 'Cliente Mes ' || to_char(date_trunc('month', now() - (gs || ' months')::interval), 'YYYY-MM')
+);
+
+insert into crm_contacts (client_id, name, role, phone, email, detail, created_at, updated_at)
+select
+  c.id,
+  'Contacto ' || c.name || ' ' || v.letter,
+  case when v.letter = 'A' then 'Compras' else 'Operaciones' end,
+  '09' || lpad((abs(hashtext(c.name || v.letter)) % 10000000)::text, 8, '0'),
+  lower(replace(c.name, ' ', '')) || lower(v.letter) || '@demo.com',
+  'Contacto generado para pruebas.',
+  c.created_at + interval '5 days',
+  c.created_at + interval '10 days'
+from crm_clients c
+cross join (values ('A'), ('B')) as v(letter)
+where c.name like 'Cliente Mes %'
+  and not exists (
+    select 1 from crm_contacts
+    where client_id = c.id
+      and name = 'Contacto ' || c.name || ' ' || v.letter
+  );
+
+insert into crm_opportunities (title, client_id, responsible_user_id, stage_id, closed_at, created_at, updated_at)
+select
+  'Oportunidad ' || to_char(c.created_at, 'YYYY-MM') || ' - ' || c.name,
+  c.id,
+  c.responsible_user_id,
+  stage.id,
+  case when stage.is_won or stage.is_lost then c.created_at + interval '25 days' else null end,
+  c.created_at + interval '8 days',
+  c.created_at + interval '18 days'
+from crm_clients c
+join lateral (
+  select id, is_won, is_lost
+  from crm_opportunity_stages
+  order by sort_order
+  limit 1 offset ((extract(month from c.created_at)::int - 1) % 4)
+) stage on true
+where c.name like 'Cliente Mes %'
+  and not exists (
+    select 1 from crm_opportunities
+    where title = 'Oportunidad ' || to_char(c.created_at, 'YYYY-MM') || ' - ' || c.name
+  );
+
+insert into crm_opportunity_contacts (opportunity_id, contact_id)
+select o.id, c.id
+from crm_opportunities o
+join crm_contacts c on c.client_id = o.client_id
+where o.title like 'Oportunidad %'
+  and not exists (
+    select 1 from crm_opportunity_contacts
+    where opportunity_id = o.id and contact_id = c.id
+  );
+
+insert into crm_activities (activity_type_id, client_id, opportunity_id, responsible_user_id, scheduled_at, detail, outcome_id, created_at, updated_at)
+select
+  (select id from crm_activity_types order by sort_order limit 1 offset (gs % 5)),
+  o.client_id,
+  o.id,
+  o.responsible_user_id,
+  o.created_at + (gs || ' days')::interval + interval '2 days',
+  'Seguimiento mensual ' || (gs + 1),
+  (select id from crm_activity_outcomes order by sort_order limit 1 offset (gs % 2)),
+  o.created_at + (gs || ' days')::interval + interval '2 days',
+  o.created_at + (gs || ' days')::interval + interval '2 days'
+from crm_opportunities o
+cross join generate_series(0, 1) gs
+where o.title like 'Oportunidad %'
+  and not exists (
+    select 1 from crm_activities
+    where opportunity_id = o.id and detail = 'Seguimiento mensual ' || (gs + 1)
+  );
+
+insert into crm_activity_contacts (activity_id, contact_id)
+select a.id, c.id
+from crm_activities a
+join crm_contacts c on c.client_id = a.client_id
+where a.detail like 'Seguimiento mensual %'
+  and not exists (
+    select 1 from crm_activity_contacts
+    where activity_id = a.id and contact_id = c.id
+  );
+
+insert into crm_notes (detail, author_user_id, client_id, created_at, updated_at)
+select
+  'Nota mensual para ' || c.name,
+  c.responsible_user_id,
+  c.id,
+  c.created_at + interval '12 days',
+  c.created_at + interval '12 days'
+from crm_clients c
+where c.name like 'Cliente Mes %'
+  and not exists (
+    select 1 from crm_notes
+    where client_id = c.id and detail = 'Nota mensual para ' || c.name
+  );

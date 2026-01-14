@@ -19,6 +19,8 @@ type ClientDialogProps = {
   onOpenContact?: (id: string) => void;
   onOpenOpportunity?: (id: string) => void;
   onOpenActivity?: (id: string) => void;
+  onCreateOpportunity?: () => void;
+  onCreateActivity?: () => void;
   onOpenNote?: (id: string) => void;
   onCreateNote?: (context: { clientId: string; parentNoteId?: string; parentPreview?: string }) => void;
 };
@@ -46,8 +48,10 @@ type ClientDetail = {
   activities: {
     id: string;
     scheduled_at?: string | null;
+    created_at?: string | null;
     type_name?: string | null;
     outcome_name?: string | null;
+    detail?: string | null;
   }[];
   notes: {
     id: string;
@@ -60,7 +64,6 @@ type ClientDetail = {
 
 type Option = { id: string; name: string };
 
-type NoteThread = ClientDetail["notes"][0] & { replies: ClientDetail["notes"] };
 
 export function ClientDialog({
   open,
@@ -71,6 +74,8 @@ export function ClientDialog({
   onOpenContact,
   onOpenOpportunity,
   onOpenActivity,
+  onCreateOpportunity,
+  onCreateActivity,
   onOpenNote,
   onCreateNote,
 }: ClientDialogProps) {
@@ -167,18 +172,32 @@ export function ClientDialog({
     }
   };
 
-  const noteThreads = useMemo<NoteThread[]>(() => {
-    const notes = detail?.notes || [];
-    const map = new Map<string, NoteThread>();
-    notes.forEach((note) => {
-      map.set(note.id, { ...note, replies: [] });
+  const timeline = useMemo(() => {
+    const activityItems =
+      detail?.activities?.map((activity) => ({
+        id: activity.id,
+        type: "activity" as const,
+        date: activity.scheduled_at || activity.created_at || "",
+        title: activity.type_name || "Actividad",
+        subtitle: activity.outcome_name || "",
+        detail: activity.detail || "",
+      })) || [];
+
+    const noteItems =
+      detail?.notes?.map((note) => ({
+        id: note.id,
+        type: "note" as const,
+        date: note.created_at || "",
+        title: note.author_name || "-",
+        subtitle: "",
+        detail: note.detail || "",
+      })) || [];
+
+    return [...activityItems, ...noteItems].sort((a, b) => {
+      const aTime = a.date ? new Date(a.date).getTime() : 0;
+      const bTime = b.date ? new Date(b.date).getTime() : 0;
+      return bTime - aTime;
     });
-    notes.forEach((note) => {
-      if (note.parent_note_id && map.has(note.parent_note_id)) {
-        map.get(note.parent_note_id)!.replies.push(note);
-      }
-    });
-    return notes.filter((note) => !note.parent_note_id).map((note) => map.get(note.id)!).filter(Boolean);
   }, [detail]);
 
   const headerTitle = isCreate ? "Nuevo cliente" : detail?.client?.name || "Cliente";
@@ -283,6 +302,16 @@ export function ClientDialog({
               </DetailSection>
 
               <DetailSection title={`Oportunidades (${detail?.opportunities?.length || 0})`}>
+                <div className="flex items-center justify-between pb-2">
+                  <p className="text-xs text-slate-400">
+                    {detail?.opportunities?.length || 0} oportunidades
+                  </p>
+                  {!isCreate ? (
+                    <Button size="sm" variant="outline" onClick={onCreateOpportunity}>
+                      Nueva oportunidad
+                    </Button>
+                  ) : null}
+                </div>
                 <div className="space-y-2">
                   {(detail?.opportunities || []).map((deal) => (
                     <button
@@ -301,70 +330,62 @@ export function ClientDialog({
             </div>
 
             <div className="space-y-4">
-              <DetailSection title={`Actividades (${detail?.activities?.length || 0})`}>
-                <div className="space-y-2">
-                  {(detail?.activities || []).map((activity) => (
-                    <button
-                      key={activity.id}
-                      type="button"
-                      className="flex w-full flex-col gap-1 rounded-xl border border-line bg-white px-3 py-2 text-left text-xs text-slate-600 hover:bg-mist"
-                      onClick={() => onOpenActivity?.(activity.id)}
-                    >
-                      <span className="font-semibold text-ink">{activity.type_name || "Actividad"}</span>
-                      <span>{formatDateTime(activity.scheduled_at)}</span>
-                    </button>
-                  ))}
-                  {!detail?.activities?.length ? <p className="text-xs text-slate-400">Sin actividades.</p> : null}
-                </div>
-              </DetailSection>
-
-              <DetailSection title="Notas">
+              <DetailSection title="Cronologia">
                 <div className="flex items-center justify-between pb-2">
-                  <p className="text-xs text-slate-400">{detail?.notes?.length || 0} notas</p>
-                  {!isCreate && clientId ? (
-                    <Button size="sm" variant="outline" onClick={() => onCreateNote?.({ clientId })}>
-                      Nueva nota
-                    </Button>
-                  ) : null}
+                  <p className="text-xs text-slate-400">{timeline.length} eventos</p>
+                  <div className="flex gap-2">
+                    {!isCreate ? (
+                      <Button size="sm" variant="outline" onClick={onCreateActivity}>
+                        Nueva actividad
+                      </Button>
+                    ) : null}
+                    {!isCreate && clientId ? (
+                      <Button size="sm" variant="outline" onClick={() => onCreateNote?.({ clientId })}>
+                        Nueva nota
+                      </Button>
+                    ) : null}
+                  </div>
                 </div>
                 <div className="space-y-3">
-                  {noteThreads.map((note) => (
-                    <div key={note.id} className="rounded-xl border border-line bg-white px-3 py-2 text-xs text-slate-600">
+                  {timeline.map((item) => (
+                    <div key={`${item.type}-${item.id}`} className="rounded-xl border border-line bg-white px-3 py-2 text-xs text-slate-600">
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-ink">{note.author_name || "-"}</span>
-                        <span>{note.created_at ? note.created_at.slice(0, 10) : "-"}</span>
+                        <span className="font-semibold text-ink">
+                          {item.type === "activity" ? item.title : item.title}
+                        </span>
+                        <span>{item.date ? formatDateTime(item.date) : "-"}</span>
                       </div>
-                      <p className="mt-2 text-sm text-slate-700">{note.detail}</p>
+                      {item.subtitle ? <p className="mt-1 text-xs text-slate-400">{item.subtitle}</p> : null}
+                      {item.detail ? <p className="mt-2 text-sm text-slate-700">{item.detail}</p> : null}
                       <div className="mt-2 flex gap-2">
-                        <Button size="sm" variant="outline" onClick={() => onOpenNote?.(note.id)}>
-                          Ver nota
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() =>
-                            onCreateNote?.({ clientId: clientId || "", parentNoteId: note.id, parentPreview: note.detail })
-                          }
-                        >
-                          Responder
-                        </Button>
+                        {item.type === "activity" ? (
+                          <Button size="sm" variant="outline" onClick={() => onOpenActivity?.(item.id)}>
+                            Ver actividad
+                          </Button>
+                        ) : (
+                          <>
+                            <Button size="sm" variant="outline" onClick={() => onOpenNote?.(item.id)}>
+                              Ver nota
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() =>
+                                onCreateNote?.({
+                                  clientId: clientId || "",
+                                  parentNoteId: item.id,
+                                  parentPreview: item.detail,
+                                })
+                              }
+                            >
+                              Responder
+                            </Button>
+                          </>
+                        )}
                       </div>
-                      {note.replies.length ? (
-                        <div className="mt-3 space-y-2 border-l border-line pl-3">
-                          {note.replies.map((reply) => (
-                            <div key={reply.id} className="text-xs text-slate-600">
-                              <div className="flex items-center justify-between">
-                                <span className="font-semibold text-ink">{reply.author_name || "-"}</span>
-                                <span>{reply.created_at ? reply.created_at.slice(0, 10) : "-"}</span>
-                              </div>
-                              <p className="mt-1 text-sm text-slate-700">{reply.detail}</p>
-                            </div>
-                          ))}
-                        </div>
-                      ) : null}
                     </div>
                   ))}
-                  {!noteThreads.length ? <p className="text-xs text-slate-400">Sin notas.</p> : null}
+                  {!timeline.length ? <p className="text-xs text-slate-400">Sin eventos.</p> : null}
                 </div>
               </DetailSection>
             </div>

@@ -40,7 +40,7 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
         .order("created_at", { ascending: false }),
       supabaseServer
         .from("crm_activities")
-        .select("id,activity_type_id,outcome_id,responsible_user_id,scheduled_at,created_at")
+        .select("id,activity_type_id,outcome_id,responsible_user_id,scheduled_at,detail,created_at")
         .eq("client_id", params.id)
         .order("scheduled_at", { ascending: false }),
       supabaseServer
