@@ -4,6 +4,11 @@ import { getSessionFromRequest, hasAccess } from "@/lib/auth";
 
 const uniqueIds = (values: any[]) => Array.from(new Set(values.filter(Boolean)));
 
+const parseNumber = (value: any) => {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+};
+
 const resolveClosedAt = async (stageId?: string | null) => {
   if (!stageId) return null;
   const { data: stage } = await supabaseServer
@@ -13,6 +18,20 @@ const resolveClosedAt = async (stageId?: string | null) => {
     .maybeSingle();
   if (stage?.is_won || stage?.is_lost) return new Date().toISOString();
   return null;
+};
+
+const resolveNextSortOrder = async (stageId?: string | null) => {
+  let query = supabaseServer
+    .from("crm_opportunities")
+    .select("sort_order")
+    .order("sort_order", { ascending: false })
+    .limit(1);
+  if (stageId) query = query.eq("stage_id", stageId);
+  else query = query.is("stage_id", null);
+  const { data } = await query;
+  const max = data?.[0]?.sort_order;
+  if (Number.isFinite(max)) return Number(max) + 1;
+  return Date.now();
 };
 
 export async function GET(req: Request) {
@@ -31,7 +50,7 @@ export async function GET(req: Request) {
   try {
     let query = supabaseServer
       .from("crm_opportunities")
-      .select("id,title,client_id,responsible_user_id,stage_id,closed_at,created_at")
+      .select("id,title,client_id,responsible_user_id,stage_id,closed_at,created_at,value,sort_order")
       .order("created_at", { ascending: false });
 
     if (q) query = query.ilike("title", `%${q}%`);
@@ -82,6 +101,8 @@ export async function GET(req: Request) {
 
     const payload = (opportunities || []).map((row) => ({
       ...row,
+      value: parseNumber(row.value),
+      sort_order: parseNumber(row.sort_order),
       client_name: row.client_id ? clientMap.get(row.client_id) || "-" : "-",
       stage_name: row.stage_id ? stageMap.get(row.stage_id) || "-" : "-",
       responsible_name: row.responsible_user_id ? userMap.get(row.responsible_user_id) || "-" : "-",
@@ -109,6 +130,9 @@ export async function POST(req: Request) {
 
     const stageId = body?.stage_id || null;
     const closedAt = await resolveClosedAt(stageId);
+    const value = parseNumber(body?.value);
+    const sortOrder =
+      Number.isFinite(Number(body?.sort_order)) ? Number(body.sort_order) : await resolveNextSortOrder(stageId);
 
     const payload = {
       title,
@@ -116,13 +140,15 @@ export async function POST(req: Request) {
       responsible_user_id: body?.responsible_user_id || null,
       stage_id: stageId,
       closed_at: closedAt,
+      value,
+      sort_order: sortOrder,
       updated_at: new Date().toISOString(),
     };
 
     const { data: opportunity, error } = await supabaseServer
       .from("crm_opportunities")
       .insert(payload)
-      .select("id,title,client_id,responsible_user_id,stage_id,closed_at,created_at")
+      .select("id,title,client_id,responsible_user_id,stage_id,closed_at,created_at,value,sort_order")
       .maybeSingle();
     if (error || !opportunity) return new NextResponse("Error al crear oportunidad", { status: 500 });
 

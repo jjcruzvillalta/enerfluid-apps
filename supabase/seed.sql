@@ -107,7 +107,7 @@ values
   ((select id from crm_clients where name = 'Distribuciones Pacifico'), 'Valeria Luna', 'Directora comercial', '095555666', 'valeria@pacifico.ec', 'Busca precios por volumen.');
 
 -- Oportunidades demo
-insert into crm_opportunities (title, client_id, responsible_user_id, stage_id, closed_at, created_at, updated_at)
+insert into crm_opportunities (title, client_id, responsible_user_id, stage_id, closed_at, created_at, updated_at, value, sort_order)
 values
   (
     'Suministro trimestral de insumos',
@@ -116,7 +116,9 @@ values
     (select id from crm_opportunity_stages where name = 'Cotizacion enviada'),
     null,
     now() - interval '35 days',
-    now() - interval '5 days'
+    now() - interval '5 days',
+    22000,
+    1
   ),
   (
     'Proyecto Torre Azul',
@@ -125,7 +127,9 @@ values
     (select id from crm_opportunity_stages where name = 'Solicitud recibida'),
     null,
     now() - interval '20 days',
-    now() - interval '2 days'
+    now() - interval '2 days',
+    18500,
+    2
   ),
   (
     'Renovacion contrato anual',
@@ -134,7 +138,9 @@ values
     (select id from crm_opportunity_stages where name = 'Ganado'),
     now() - interval '28 days',
     now() - interval '80 days',
-    now() - interval '28 days'
+    now() - interval '28 days',
+    42000,
+    3
   ),
   (
     'Paquete distribuidores Q3',
@@ -143,7 +149,9 @@ values
     (select id from crm_opportunity_stages where name = 'Perdido'),
     now() - interval '55 days',
     now() - interval '120 days',
-    now() - interval '55 days'
+    now() - interval '55 days',
+    12000,
+    4
   );
 
 -- Contactos vinculados a oportunidades
@@ -296,7 +304,7 @@ where c.name like 'Cliente Mes %'
       and name = 'Contacto ' || c.name || ' ' || v.letter
   );
 
-insert into crm_opportunities (title, client_id, responsible_user_id, stage_id, closed_at, created_at, updated_at)
+insert into crm_opportunities (title, client_id, responsible_user_id, stage_id, closed_at, created_at, updated_at, value, sort_order)
 select
   'Oportunidad ' || to_char(c.created_at, 'YYYY-MM') || ' - ' || c.name,
   c.id,
@@ -304,7 +312,9 @@ select
   stage.id,
   case when stage.is_won or stage.is_lost then c.created_at + interval '25 days' else null end,
   c.created_at + interval '8 days',
-  c.created_at + interval '18 days'
+  c.created_at + interval '18 days',
+  ((extract(month from c.created_at)::int * 3500) % 60000) + 5000,
+  extract(epoch from c.created_at)
 from crm_clients c
 join lateral (
   select id, is_won, is_lost

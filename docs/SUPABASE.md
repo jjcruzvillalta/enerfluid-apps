@@ -173,6 +173,8 @@ create table if not exists crm_opportunities (
   client_id uuid references crm_clients(id) on delete set null,
   responsible_user_id uuid references app_users(id) on delete set null,
   stage_id uuid references crm_opportunity_stages(id) on delete set null,
+  value numeric,
+  sort_order numeric,
   closed_at timestamptz,
   created_at timestamptz default now(),
   updated_at timestamptz default now()

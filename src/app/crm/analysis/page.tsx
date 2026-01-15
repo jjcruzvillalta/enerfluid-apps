@@ -13,6 +13,7 @@ import {
   type ChartOptions,
 } from "chart.js";
 import { Card } from "@/components/ui/card";
+import { useCrmDialogs } from "@/components/crm/useCrmDialogs";
 import { ChartWrap } from "@/components/inventory/ChartWrap";
 import { palette, formatDateTime } from "@/lib/data";
 
@@ -67,6 +68,7 @@ export default function CrmAnalysisPage() {
   const [users, setUsers] = useState<UserOption[]>([]);
   const [userFilter, setUserFilter] = useState("");
   const [loading, setLoading] = useState(false);
+  const { openActivity, dialogs } = useCrmDialogs();
 
   useEffect(() => {
     const loadUsers = async () => {
@@ -197,21 +199,24 @@ export default function CrmAnalysisPage() {
         <h2 className="text-sm font-semibold text-slate-700">Ultimas actividades</h2>
         <div className="mt-4 space-y-3">
           {data?.recentActivities?.map((row) => (
-            <div
+            <button
               key={row.id}
-              className="flex flex-col gap-1 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between"
+              type="button"
+              className="flex w-full flex-col gap-1 text-left text-sm text-slate-600 transition hover:text-slate-800 sm:flex-row sm:items-center sm:justify-between"
+              onClick={() => openActivity(row.id)}
             >
               <span>
                 {row.type_name || "Actividad"} / {row.client_name || "-"} / {row.responsible_name || "-"}
               </span>
               <span className="text-xs text-slate-400">{formatDateTime(row.scheduled_at)}</span>
-            </div>
+            </button>
           ))}
           {!loading && !data?.recentActivities?.length ? (
             <p className="text-sm text-slate-400">Sin actividades recientes.</p>
           ) : null}
         </div>
       </Card>
+      {dialogs}
     </div>
   );
 }

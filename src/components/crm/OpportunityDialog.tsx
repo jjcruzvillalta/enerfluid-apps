@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import { DetailSection } from "@/components/crm/DetailSection";
 import { FieldRow } from "@/components/crm/FieldRow";
-import { formatDateTime } from "@/lib/data";
+import { formatCurrency, formatDateTime, toNumber } from "@/lib/data";
 
 type OpportunityDialogProps = {
   open: boolean;
@@ -32,6 +32,7 @@ type OpportunityDetail = {
     client_id?: string | null;
     responsible_user_id?: string | null;
     stage_id?: string | null;
+    value?: number | null;
     created_at?: string | null;
     updated_at?: string | null;
     closed_at?: string | null;
@@ -88,6 +89,7 @@ export function OpportunityDialog({
     client_id: "",
     responsible_user_id: "",
     stage_id: "",
+    value: "",
   });
 
   const isCreate = mode === "create";
@@ -142,6 +144,7 @@ export function OpportunityDialog({
         client_id: data?.opportunity?.client_id || "",
         responsible_user_id: data?.opportunity?.responsible_user_id || "",
         stage_id: data?.opportunity?.stage_id || "",
+        value: Number.isFinite(data?.opportunity?.value) ? String(data.opportunity.value) : "",
       });
       setContactSelection(new Set((data?.contacts || []).map((contact: any) => contact.id)));
     } finally {
@@ -154,7 +157,7 @@ export function OpportunityDialog({
     setEditing(isCreate);
     if (isCreate) {
       setDetail(null);
-      setDraft({ title: "", client_id: initialClientId || "", responsible_user_id: "", stage_id: "" });
+      setDraft({ title: "", client_id: initialClientId || "", responsible_user_id: "", stage_id: "", value: "" });
       setContactSelection(new Set());
       return;
     }
@@ -165,11 +168,13 @@ export function OpportunityDialog({
     if (!draft.title.trim()) return;
     setSaving(true);
     try {
+      const parsedValue = toNumber(draft.value);
       const payload = {
         title: draft.title.trim(),
         client_id: draft.client_id || null,
         responsible_user_id: draft.responsible_user_id || null,
         stage_id: draft.stage_id || null,
+        value: Number.isFinite(parsedValue) ? parsedValue : null,
         contact_ids: Array.from(contactSelection),
       };
       const res = await fetch(isCreate ? "/api/crm/opportunities" : `/api/crm/opportunities/${opportunityId}`, {
@@ -323,6 +328,15 @@ export function OpportunityDialog({
                         </option>
                       ))}
                     </select>
+                  </FieldRow>
+                  <FieldRow label="Valor" value={formatCurrency(detail?.opportunity?.value || 0)} editing={editing}>
+                    <Input
+                      type="text"
+                      inputMode="decimal"
+                      placeholder="USD"
+                      value={draft.value}
+                      onChange={(event) => setDraft((prev) => ({ ...prev, value: event.target.value }))}
+                    />
                   </FieldRow>
                 </div>
               </DetailSection>

@@ -74,7 +74,7 @@ opportunities_data as (
   join clients_index c on c.rn = ((gs - 1) % 30) + 1
 ),
 opportunity_rows as (
-  insert into crm_opportunities (title, client_id, responsible_user_id, stage_id, closed_at, created_at, updated_at)
+  insert into crm_opportunities (title, client_id, responsible_user_id, stage_id, closed_at, created_at, updated_at, value, sort_order)
   select
     'Oportunidad Demo ' || idx,
     client_id,
@@ -85,7 +85,9 @@ opportunity_rows as (
       else null
     end,
     now() - ((idx - 1) * interval '8 days'),
-    now() - ((idx - 1) * interval '3 days')
+    now() - ((idx - 1) * interval '3 days'),
+    ((idx * 1250) % 80000) + 2500,
+    idx
   from opportunities_data
   returning id, client_id
 )

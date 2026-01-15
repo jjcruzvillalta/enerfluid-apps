@@ -2,6 +2,25 @@ import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getSessionFromRequest, hasAccess } from "@/lib/auth";
 
+const parseNumber = (value: any) => {
+  const num = Number(value);
+  return Number.isFinite(num) ? num : null;
+};
+
+const resolveNextSortOrder = async (stageId?: string | null) => {
+  let query = supabaseServer
+    .from("crm_opportunities")
+    .select("sort_order")
+    .order("sort_order", { ascending: false })
+    .limit(1);
+  if (stageId) query = query.eq("stage_id", stageId);
+  else query = query.is("stage_id", null);
+  const { data } = await query;
+  const max = data?.[0]?.sort_order;
+  if (Number.isFinite(max)) return Number(max) + 1;
+  return Date.now();
+};
+
 const resolveClosedAt = async (stageId?: string | null) => {
   if (!stageId) return null;
   const { data: stage } = await supabaseServer
@@ -118,8 +137,14 @@ export async function GET(_req: Request, { params }: { params: { id: string } })
       author_name: row.author_user_id ? userMap.get(row.author_user_id) || "-" : "-",
     }));
 
+    const normalizedOpportunity = {
+      ...opportunity,
+      value: parseNumber(opportunity.value),
+      sort_order: parseNumber(opportunity.sort_order),
+    };
+
     return NextResponse.json({
-      opportunity,
+      opportunity: normalizedOpportunity,
       client: clientRes.data || null,
       stage: stageRes.data || null,
       responsible: responsibleRes.data
@@ -151,7 +176,12 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     if (body?.stage_id !== undefined) {
       updates.stage_id = body.stage_id || null;
       updates.closed_at = await resolveClosedAt(body.stage_id);
+      if (body?.sort_order === undefined) {
+        updates.sort_order = await resolveNextSortOrder(body.stage_id || null);
+      }
     }
+    if (body?.value !== undefined) updates.value = parseNumber(body.value);
+    if (body?.sort_order !== undefined) updates.sort_order = parseNumber(body.sort_order);
     updates.updated_at = new Date().toISOString();
 
     const { error } = await supabaseServer.from("crm_opportunities").update(updates).eq("id", params.id);
