@@ -91,7 +91,7 @@ export default function ActivitiesPage() {
           <h1 className="text-2xl font-semibold text-slate-800">Actividades</h1>
           <p className="text-sm text-slate-500">Agenda y seguimiento diario.</p>
         </div>
-        <Button onClick={createActivity}>Nueva actividad</Button>
+        <Button onClick={() => createActivity()}>Nueva actividad</Button>
       </div>
 
       <Card className="p-4">

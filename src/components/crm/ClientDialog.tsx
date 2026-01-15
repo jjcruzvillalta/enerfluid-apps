@@ -87,6 +87,7 @@ export function ClientDialog({
   const [detail, setDetail] = useState<ClientDetail | null>(null);
   const [clientTypes, setClientTypes] = useState<Option[]>([]);
   const [users, setUsers] = useState<Option[]>([]);
+  const [timelineTab, setTimelineTab] = useState<"all" | "activities" | "notes">("all");
   const [draft, setDraft] = useState({
     name: "",
     city: "",
@@ -227,6 +228,34 @@ export function ClientDialog({
     });
   }, [detail]);
 
+  const filteredTimeline = useMemo(() => {
+    if (timelineTab === "activities") return timeline.filter((item) => item.type === "activity");
+    if (timelineTab === "notes") return timeline.filter((item) => item.type === "note");
+    return timeline;
+  }, [timeline, timelineTab]);
+
+  const upcomingActivities = useMemo(() => {
+    const now = new Date().getTime();
+    return (detail?.activities || [])
+      .filter((activity) => activity.scheduled_at && new Date(activity.scheduled_at).getTime() >= now)
+      .sort((a, b) => {
+        const aTime = a.scheduled_at ? new Date(a.scheduled_at).getTime() : 0;
+        const bTime = b.scheduled_at ? new Date(b.scheduled_at).getTime() : 0;
+        return aTime - bTime;
+      })
+      .slice(0, 4);
+  }, [detail]);
+
+  const openOpportunities = useMemo(() => {
+    return (detail?.opportunities || [])
+      .filter((opp) => {
+        const stage = (opp.stage_name || "").toLowerCase();
+        if (!stage) return true;
+        return !stage.includes("ganado") && !stage.includes("perdido");
+      })
+      .slice(0, 4);
+  }, [detail]);
+
   const headerTitle = isCreate ? "Nuevo cliente" : detail?.client?.name || "Cliente";
 
   return (
@@ -241,13 +270,39 @@ export function ClientDialog({
             <X className="h-4 w-4" />
           </button>
         </DialogClose>
-        <DialogHeader className="flex flex-col gap-1">
-          <DialogTitle>{headerTitle}</DialogTitle>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
-            <span>{detail?.client?.updated_at ? `Actualizado ${detail.client.updated_at.slice(0, 10)}` : ""}</span>
-            {detail?.client_type?.name ? <Badge variant="outline">{detail.client_type.name}</Badge> : null}
-          </div>
-        </DialogHeader>
+        <div className="sticky top-0 z-10 -mx-6 mb-4 border-b border-line bg-white/95 px-6 pb-4 pt-2 backdrop-blur">
+          <DialogHeader className="items-start">
+            <div className="space-y-1">
+              <DialogTitle>{headerTitle}</DialogTitle>
+              <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                {detail?.client?.updated_at ? (
+                  <span>{`Actualizado ${detail.client.updated_at.slice(0, 10)}`}</span>
+                ) : null}
+                {detail?.client_type?.name ? <Badge variant="outline">{detail.client_type.name}</Badge> : null}
+                {detail?.responsible?.name ? <span>Resp: {detail.responsible.name}</span> : null}
+                {detail?.client?.city ? <span>Ciudad: {detail.client.city}</span> : null}
+              </div>
+            </div>
+            {!isCreate ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <Button size="sm" variant="outline" onClick={() => onCreateActivity?.({ clientId })}>
+                  Nueva actividad
+                </Button>
+                {clientId ? (
+                  <Button size="sm" variant="outline" onClick={() => onCreateNote?.({ clientId })}>
+                    Nueva nota
+                  </Button>
+                ) : null}
+                <Button size="sm" variant="outline" onClick={() => onCreateOpportunity?.({ clientId })}>
+                  Nueva oportunidad
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => onCreateContact?.({ clientId })}>
+                  Nuevo contacto
+                </Button>
+              </div>
+            ) : null}
+          </DialogHeader>
+        </div>
 
         {loading ? (
           <p className="text-sm text-slate-400">Cargando...</p>
@@ -366,23 +421,34 @@ export function ClientDialog({
 
             <div className="space-y-4">
               <DetailSection title="Cronologia">
-                <div className="flex items-center justify-between pb-2">
-                  <p className="text-xs text-slate-400">{timeline.length} eventos</p>
-                  <div className="flex gap-2">
-                    {!isCreate ? (
-                      <Button size="sm" variant="outline" onClick={() => onCreateActivity?.({ clientId })}>
-                        Nueva actividad
-                      </Button>
-                    ) : null}
-                    {!isCreate && clientId ? (
-                      <Button size="sm" variant="outline" onClick={() => onCreateNote?.({ clientId })}>
-                        Nueva nota
-                      </Button>
-                    ) : null}
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
+                  <p className="text-xs text-slate-400">{filteredTimeline.length} eventos</p>
+                  <div className="flex rounded-xl border border-line bg-white p-1">
+                    <button
+                      type="button"
+                      className={`rounded-lg px-3 py-1 text-[11px] font-semibold ${timelineTab === "all" ? "bg-ink text-white" : "text-slate-500"}`}
+                      onClick={() => setTimelineTab("all")}
+                    >
+                      Todo
+                    </button>
+                    <button
+                      type="button"
+                      className={`rounded-lg px-3 py-1 text-[11px] font-semibold ${timelineTab === "activities" ? "bg-ink text-white" : "text-slate-500"}`}
+                      onClick={() => setTimelineTab("activities")}
+                    >
+                      Actividades
+                    </button>
+                    <button
+                      type="button"
+                      className={`rounded-lg px-3 py-1 text-[11px] font-semibold ${timelineTab === "notes" ? "bg-ink text-white" : "text-slate-500"}`}
+                      onClick={() => setTimelineTab("notes")}
+                    >
+                      Notas
+                    </button>
                   </div>
                 </div>
                 <div className="space-y-3">
-                  {timeline.map((item) => (
+                  {filteredTimeline.map((item) => (
                     <div key={`${item.type}-${item.id}`} className="rounded-xl border border-line bg-white px-3 py-2 text-xs text-slate-600">
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-ink">
@@ -390,7 +456,21 @@ export function ClientDialog({
                         </span>
                         <span>{item.date ? formatDateTime(item.date) : "-"}</span>
                       </div>
-                      {item.subtitle ? <p className="mt-1 text-xs text-slate-400">{item.subtitle}</p> : null}
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {item.type === "activity" ? (
+                          <>
+                            <Badge variant="outline">{item.title || "Actividad"}</Badge>
+                            {item.subtitle ? <Badge variant="outline">{item.subtitle}</Badge> : null}
+                          </>
+                        ) : (
+                          <>
+                            <Badge variant="outline">Nota</Badge>
+                            {item.replies?.length ? (
+                              <Badge variant="outline">{item.replies.length} respuestas</Badge>
+                            ) : null}
+                          </>
+                        )}
+                      </div>
                       {item.detail ? <p className="mt-2 text-sm text-slate-700">{item.detail}</p> : null}
                       <div className="mt-2 flex gap-2">
                         {item.type === "activity" ? (
@@ -433,7 +513,49 @@ export function ClientDialog({
                       ) : null}
                     </div>
                   ))}
-                  {!timeline.length ? <p className="text-xs text-slate-400">Sin eventos.</p> : null}
+                  {!filteredTimeline.length ? <p className="text-xs text-slate-400">Sin eventos.</p> : null}
+                </div>
+              </DetailSection>
+              <DetailSection title="Seguimiento rapido">
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs font-semibold text-slate-500">Proximas actividades</p>
+                    <div className="mt-2 space-y-2">
+                      {upcomingActivities.map((activity) => (
+                        <button
+                          key={activity.id}
+                          type="button"
+                          className="flex w-full items-center justify-between rounded-xl border border-line bg-white px-3 py-2 text-left text-xs text-slate-600 hover:bg-mist"
+                          onClick={() => onOpenActivity?.(activity.id)}
+                        >
+                          <span className="font-semibold text-ink">{activity.type_name || "Actividad"}</span>
+                          <span>{activity.scheduled_at ? formatDateTime(activity.scheduled_at) : "-"}</span>
+                        </button>
+                      ))}
+                      {!upcomingActivities.length ? (
+                        <p className="text-xs text-slate-400">Sin actividades futuras.</p>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-slate-500">Oportunidades abiertas</p>
+                    <div className="mt-2 space-y-2">
+                      {openOpportunities.map((deal) => (
+                        <button
+                          key={deal.id}
+                          type="button"
+                          className="flex w-full items-center justify-between rounded-xl border border-line bg-white px-3 py-2 text-left text-xs text-slate-600 hover:bg-mist"
+                          onClick={() => onOpenOpportunity?.(deal.id)}
+                        >
+                          <span className="font-semibold text-ink">{deal.title}</span>
+                          <span>{deal.stage_name || "-"}</span>
+                        </button>
+                      ))}
+                      {!openOpportunities.length ? (
+                        <p className="text-xs text-slate-400">Sin oportunidades abiertas.</p>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
               </DetailSection>
             </div>
