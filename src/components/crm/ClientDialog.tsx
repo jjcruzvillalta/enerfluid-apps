@@ -299,7 +299,7 @@ export function ClientDialog({
             <X className="h-4 w-4" />
           </button>
         </DialogClose>
-        <div className="sticky top-0 z-10 -mx-6 mb-4 border-b border-line bg-white/95 px-6 pb-4 pt-2 backdrop-blur">
+        <div className="-mx-6 mb-4 border-b border-line bg-white px-6 pb-4 pt-2">
           <DialogHeader className="items-start">
             <div className="space-y-1">
               <DialogTitle>{headerTitle}</DialogTitle>
@@ -502,7 +502,14 @@ export function ClientDialog({
                 </div>
                 <div className="max-h-[55vh] space-y-3 overflow-y-auto pr-2">
                   {filteredTimeline.map((item) => (
-                    <div key={`${item.type}-${item.id}`} className="rounded-xl border border-line bg-white px-3 py-2 text-xs text-slate-600">
+                    <div
+                      key={`${item.type}-${item.id}`}
+                      className={`rounded-xl border border-line/70 border-l-4 px-3 py-2 text-xs text-slate-600 shadow-sm ${
+                        item.type === "activity"
+                          ? "border-l-sky-400 bg-sky-50/60"
+                          : "border-l-amber-400 bg-amber-50/60"
+                      }`}
+                    >
                       <div className="flex items-center justify-between">
                         <span className="font-semibold text-ink">
                           {item.type === "activity" ? item.title : item.title}

@@ -19,7 +19,7 @@ type NotificationRow = {
 type NotificationsDialogProps = {
   open: boolean;
   onClose: () => void;
-  onNavigate?: (entity: { type: string; id: string } | null) => void;
+  onNavigate?: (payload: { entity: { type: string; id: string } | null; noteId?: string | null }) => void;
 };
 
 export function NotificationsDialog({ open, onClose, onNavigate }: NotificationsDialogProps) {
@@ -59,7 +59,7 @@ export function NotificationsDialog({ open, onClose, onNavigate }: Notifications
         <DialogClose asChild>
           <button
             type="button"
-            className="absolute right-4 top-4 rounded-full border border-line bg-white p-1 text-slate-500 shadow-sm hover:text-slate-700"
+            className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full border border-line bg-white/95 text-slate-500 shadow-soft transition hover:bg-white hover:text-slate-700"
             aria-label="Cerrar"
           >
             <X className="h-4 w-4" />
@@ -93,7 +93,11 @@ export function NotificationsDialog({ open, onClose, onNavigate }: Notifications
               <p className="mt-2 text-sm text-slate-700">{item.preview || "Nueva notificacion"}</p>
               <div className="mt-2 flex gap-2">
                 {item.entity ? (
-                  <Button size="sm" variant="outline" onClick={() => onNavigate?.(item.entity)}>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onNavigate?.({ entity: item.entity, noteId: item.note_id })}
+                  >
                     Ver en CRM
                   </Button>
                 ) : null}

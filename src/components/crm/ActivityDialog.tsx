@@ -273,7 +273,7 @@ export function ActivityDialog({
         <DialogClose asChild>
           <button
             type="button"
-            className="absolute right-4 top-4 rounded-full border border-line bg-white p-1 text-slate-500 shadow-sm hover:text-slate-700"
+            className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-full border border-line bg-white/95 text-slate-500 shadow-soft transition hover:bg-white hover:text-slate-700"
             aria-label="Cerrar"
           >
             <X className="h-4 w-4" />

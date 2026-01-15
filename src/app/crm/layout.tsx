@@ -9,6 +9,7 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { Sheet, SheetClose, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/context/AuthContext";
 import { NotificationsDialog } from "@/components/crm/NotificationsDialog";
+import { NoteDialog } from "@/components/crm/NoteDialog";
 import { AppBrand } from "@/components/common/AppBrand";
 import {
   Activity,
@@ -66,6 +67,8 @@ export default function CrmLayout({ children }) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [noteOpen, setNoteOpen] = useState(false);
+  const [noteId, setNoteId] = useState<string | null>(null);
   const greeting = useMemo(() => user?.displayName || user?.username || "-", [user]);
 
   const loadNotifications = async () => {
@@ -74,6 +77,12 @@ export default function CrmLayout({ children }) {
     const data = await res.json();
     const unread = (data?.notifications || []).filter((item: any) => item.is_read === false).length;
     setUnreadCount(unread);
+  };
+
+  const openNoteDetail = (id?: string | null) => {
+    if (!id) return;
+    setNoteId(id);
+    setNoteOpen(true);
   };
 
   useEffect(() => {
@@ -209,18 +218,26 @@ export default function CrmLayout({ children }) {
       <NotificationsDialog
         open={notificationsOpen}
         onClose={() => setNotificationsOpen(false)}
-        onNavigate={(entity) => {
-          if (!entity) return;
+        onNavigate={({ entity, noteId: nextNoteId }) => {
           const routes: Record<string, string> = {
             client: "/crm/clients",
             contact: "/crm/contacts",
             opportunity: "/crm/opportunities",
             activity: "/crm/activities",
           };
-          const target = routes[entity.type] || "/crm/analysis";
+          if (entity) {
+            const target = routes[entity.type] || "/crm/analysis";
+            router.push(target);
+          }
+          openNoteDetail(nextNoteId);
           setNotificationsOpen(false);
-          router.push(target);
         }}
+      />
+      <NoteDialog
+        open={noteOpen}
+        noteId={noteId}
+        onClose={() => setNoteOpen(false)}
+        onSaved={loadNotifications}
       />
     </div>
   );
