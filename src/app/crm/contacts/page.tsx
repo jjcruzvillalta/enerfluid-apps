@@ -74,7 +74,7 @@ export default function ContactsPage() {
           <h1 className="text-2xl font-semibold text-slate-800">Contactos</h1>
           <p className="text-sm text-slate-500">Personas clave por cuenta.</p>
         </div>
-        <Button onClick={createContact}>Nuevo contacto</Button>
+        <Button onClick={() => createContact()}>Nuevo contacto</Button>
       </div>
 
       <Card className="p-4">

@@ -174,7 +174,7 @@ export default function OpportunitiesPage() {
               Tabla
             </button>
           </div>
-          <Button onClick={createOpportunity}>Nueva oportunidad</Button>
+          <Button onClick={() => createOpportunity()}>Nueva oportunidad</Button>
         </div>
       </div>
 
