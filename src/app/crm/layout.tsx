@@ -93,7 +93,7 @@ export default function CrmLayout({ children }) {
   }
 
   return (
-    <div className="min-h-screen text-ink flex overflow-x-hidden bg-gradient-to-br from-white via-cloud to-mist">
+    <div className="min-h-screen h-screen text-ink flex overflow-hidden bg-gradient-to-br from-white via-cloud to-mist">
       <aside className="hidden lg:flex w-72 shrink-0 flex-col border-r border-line bg-white px-6 py-8 shadow-soft lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 bg-slate-900 rounded-lg flex items-center justify-center text-white font-bold">C</div>
@@ -134,7 +134,7 @@ export default function CrmLayout({ children }) {
         </div>
       </aside>
 
-      <main className="flex-1 min-w-0 overflow-y-auto">
+      <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
         <div className="mx-auto flex w-full min-w-0 max-w-screen-2xl flex-col gap-6 px-4 py-6 md:px-8 lg:px-10">
           <Card className="glass-panel">
             <CardHeader className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
