@@ -40,7 +40,7 @@ export default function PortalPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-white via-cloud to-mist px-6 py-10">
+    <main className="min-h-screen bg-gradient-to-br from-white via-cloud to-mist px-4 py-10 sm:px-6">
       <div className="mx-auto max-w-6xl space-y-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
@@ -48,7 +48,7 @@ export default function PortalPage() {
             <h1 className="text-3xl font-semibold text-slate-900">Enerfluid Apps</h1>
             <p className="text-sm text-slate-500">Portal de acceso a todas las aplicaciones.</p>
           </div>
-          <Button variant="outline" className="self-start" onClick={handleLogout}>
+          <Button variant="outline" className="w-full sm:w-auto" onClick={handleLogout}>
             Cerrar sesion
           </Button>
         </div>

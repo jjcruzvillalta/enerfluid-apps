@@ -616,7 +616,7 @@ export default function AnalysisPage() {
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle>Items en inventario</CardTitle>
             <CardDescription>Ordenado por valor total (costo actual).</CardDescription>
@@ -743,7 +743,7 @@ export default function AnalysisPage() {
             <CardTitle>Movimientos recientes</CardTitle>
             <CardDescription>Incluye ingresos y egresos para los items seleccionados.</CardDescription>
           </div>
-          <div className="flex gap-4 text-sm">
+          <div className="flex flex-wrap gap-4 text-sm">
             <div>
               <div className="text-slate-400">Registros</div>
               <div className="font-semibold text-slate-700">{movementRows.length}</div>

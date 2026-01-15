@@ -129,25 +129,27 @@ export default function CrmSettingsPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="p-4 space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-sm font-semibold text-slate-700">Tipos de cliente</h2>
             <span className="text-xs text-slate-400">{clientTypes.items.length}</span>
           </div>
           {isAdmin ? (
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <Input
                 placeholder="Nuevo tipo"
                 value={clientTypes.newName}
                 onChange={(event) => setClientTypes((prev) => ({ ...prev, newName: event.target.value }))}
               />
-              <Button onClick={() => addConfigItem("client-types", clientTypes, setClientTypes)}>Agregar</Button>
+              <Button className="w-full sm:w-auto" onClick={() => addConfigItem("client-types", clientTypes, setClientTypes)}>
+                Agregar
+              </Button>
             </div>
           ) : null}
           <div className="space-y-2">
             {clientTypes.items.map((item) => (
-              <div key={item.id} className="flex items-center justify-between rounded-xl border border-line px-3 py-2">
+              <div key={item.id} className="flex flex-col gap-2 rounded-xl border border-line px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-sm text-slate-700">{item.name}</span>
-                <div className="flex items-center gap-3 text-xs text-slate-500">
+                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
@@ -169,25 +171,27 @@ export default function CrmSettingsPage() {
         </Card>
 
         <Card className="p-4 space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-sm font-semibold text-slate-700">Tipos de actividad</h2>
             <span className="text-xs text-slate-400">{activityTypes.items.length}</span>
           </div>
           {isAdmin ? (
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <Input
                 placeholder="Nuevo tipo"
                 value={activityTypes.newName}
                 onChange={(event) => setActivityTypes((prev) => ({ ...prev, newName: event.target.value }))}
               />
-              <Button onClick={() => addConfigItem("activity-types", activityTypes, setActivityTypes)}>Agregar</Button>
+              <Button className="w-full sm:w-auto" onClick={() => addConfigItem("activity-types", activityTypes, setActivityTypes)}>
+                Agregar
+              </Button>
             </div>
           ) : null}
           <div className="space-y-2">
             {activityTypes.items.map((item) => (
-              <div key={item.id} className="flex items-center justify-between rounded-xl border border-line px-3 py-2">
+              <div key={item.id} className="flex flex-col gap-2 rounded-xl border border-line px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-sm text-slate-700">{item.name}</span>
-                <div className="flex items-center gap-3 text-xs text-slate-500">
+                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
@@ -209,27 +213,30 @@ export default function CrmSettingsPage() {
         </Card>
 
         <Card className="p-4 space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-sm font-semibold text-slate-700">Resultados de actividad</h2>
             <span className="text-xs text-slate-400">{activityOutcomes.items.length}</span>
           </div>
           {isAdmin ? (
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <Input
                 placeholder="Nuevo resultado"
                 value={activityOutcomes.newName}
                 onChange={(event) => setActivityOutcomes((prev) => ({ ...prev, newName: event.target.value }))}
               />
-              <Button onClick={() => addConfigItem("activity-outcomes", activityOutcomes, setActivityOutcomes)}>
+              <Button
+                className="w-full sm:w-auto"
+                onClick={() => addConfigItem("activity-outcomes", activityOutcomes, setActivityOutcomes)}
+              >
                 Agregar
               </Button>
             </div>
           ) : null}
           <div className="space-y-2">
             {activityOutcomes.items.map((item) => (
-              <div key={item.id} className="flex items-center justify-between rounded-xl border border-line px-3 py-2">
+              <div key={item.id} className="flex flex-col gap-2 rounded-xl border border-line px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-sm text-slate-700">{item.name}</span>
-                <div className="flex items-center gap-3 text-xs text-slate-500">
+                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"
@@ -260,27 +267,30 @@ export default function CrmSettingsPage() {
         </Card>
 
         <Card className="p-4 space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-sm font-semibold text-slate-700">Etapas de oportunidad</h2>
             <span className="text-xs text-slate-400">{opportunityStages.items.length}</span>
           </div>
           {isAdmin ? (
-            <div className="flex gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <Input
                 placeholder="Nueva etapa"
                 value={opportunityStages.newName}
                 onChange={(event) => setOpportunityStages((prev) => ({ ...prev, newName: event.target.value }))}
               />
-              <Button onClick={() => addConfigItem("opportunity-stages", opportunityStages, setOpportunityStages)}>
+              <Button
+                className="w-full sm:w-auto"
+                onClick={() => addConfigItem("opportunity-stages", opportunityStages, setOpportunityStages)}
+              >
                 Agregar
               </Button>
             </div>
           ) : null}
           <div className="space-y-2">
             {opportunityStages.items.map((item) => (
-              <div key={item.id} className="flex items-center justify-between rounded-xl border border-line px-3 py-2">
+              <div key={item.id} className="flex flex-col gap-2 rounded-xl border border-line px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
                 <span className="text-sm text-slate-700">{item.name}</span>
-                <div className="flex items-center gap-3 text-xs text-slate-500">
+                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
                   <label className="flex items-center gap-2">
                     <input
                       type="checkbox"

@@ -105,7 +105,7 @@ function InventoryLayoutContent({ children }) {
     };
 
     return (
-        <div className="min-h-screen text-ink flex bg-gradient-to-br from-white via-cloud to-mist">
+        <div className="min-h-screen text-ink flex overflow-x-hidden bg-gradient-to-br from-white via-cloud to-mist">
             <InventorySidebar user={user} onLogout={handleLogout} />
 
             <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
@@ -127,8 +127,8 @@ function InventoryLayoutContent({ children }) {
                 </SheetContent>
             </Sheet>
 
-            <main className="flex-1 overflow-auto">
-                <div className="mx-auto flex w-full max-w-screen-2xl flex-col gap-6 px-4 py-6 md:px-8 lg:px-10">
+            <main className="flex-1 min-w-0 overflow-y-auto overflow-x-hidden">
+                <div className="mx-auto flex w-full min-w-0 max-w-screen-2xl flex-col gap-6 px-4 py-6 md:px-8 lg:px-10">
                     <Card className="glass-panel">
                         <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                             <div className="flex items-center gap-3">
@@ -145,21 +145,29 @@ function InventoryLayoutContent({ children }) {
                                     <h2 className="text-xl font-semibold text-ink">Panel de Analisis de Inventario</h2>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-3">
+                            <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:gap-3">
                                 <div
                                     className={cn(
-                                        "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs",
+                                        "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs whitespace-nowrap",
                                         loading ? "border-accent/30 text-accent" : "border-line text-slate-500"
                                     )}
                                 >
                                     {loading ? <Clock className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
                                     {loading ? "Cargando" : loadStatus}
                                 </div>
-                                <Button variant="outline" onClick={() => loadAllFromSupabase({ force: true })}>
+                                <Button
+                                    variant="outline"
+                                    className="w-full sm:w-auto"
+                                    onClick={() => loadAllFromSupabase({ force: true })}
+                                >
                                     <RefreshCw className="mr-2 h-4 w-4" />
                                     Actualizar
                                 </Button>
-                                <Button variant="outline" className="text-slate-500" onClick={() => router.push("/")}>
+                                <Button
+                                    variant="outline"
+                                    className="w-full text-slate-500 sm:w-auto"
+                                    onClick={() => router.push("/")}
+                                >
                                     <Home className="mr-2 h-4 w-4" />
                                     Portal
                                 </Button>

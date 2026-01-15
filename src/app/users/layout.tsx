@@ -28,11 +28,12 @@ export default function UsersLayout({ children }) {
               <h2 className="text-xl font-semibold text-ink">Gestion de usuarios</h2>
             </div>
             <div className="flex flex-col gap-2 sm:flex-row">
-              <Button variant="outline" onClick={() => router.push("/")}>
+              <Button className="w-full sm:w-auto" variant="outline" onClick={() => router.push("/")}>
                 <Home className="mr-2 h-4 w-4" />
                 Portal
               </Button>
               <Button
+                className="w-full sm:w-auto"
                 variant="outline"
                 onClick={async () => {
                   await logout();

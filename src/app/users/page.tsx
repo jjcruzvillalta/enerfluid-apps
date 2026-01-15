@@ -105,6 +105,7 @@ export default function UsersPage() {
           <p className="text-sm text-slate-500">Gestion de accesos y roles por app.</p>
         </div>
         <Button
+          className="w-full md:w-auto"
           onClick={() => {
             resetForm();
             setDialogOpen(true);
@@ -135,29 +136,33 @@ export default function UsersPage() {
                   <td className="px-3 py-2 font-medium text-slate-800">{row.username}</td>
                   <td className="px-3 py-2">{row.display_name}</td>
                   <td className="px-3 py-2 text-xs text-slate-600">
-                    {Object.keys(defaultRoles).map((appKey) => {
-                      const value = row.roles?.[appKey] ?? "none";
-                      return (
-                        <span key={appKey} className="mr-2 inline-flex rounded-full border px-2 py-0.5">
-                          {appKey}:{value}
-                        </span>
-                      );
-                    })}
+                    <div className="flex flex-wrap gap-2">
+                      {Object.keys(defaultRoles).map((appKey) => {
+                        const value = row.roles?.[appKey] ?? "none";
+                        return (
+                          <span key={appKey} className="inline-flex rounded-full border px-2 py-0.5">
+                            {appKey}:{value}
+                          </span>
+                        );
+                      })}
+                    </div>
                   </td>
-                  <td className="px-3 py-2 text-right space-x-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        startEdit(row);
-                        setDialogOpen(true);
-                      }}
-                    >
-                      Editar
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => handleDelete(row.id)}>
-                      Eliminar
-                    </Button>
+                  <td className="px-3 py-2">
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          startEdit(row);
+                          setDialogOpen(true);
+                        }}
+                      >
+                        Editar
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => handleDelete(row.id)}>
+                        Eliminar
+                      </Button>
+                    </div>
                   </td>
                 </tr>
               ))}

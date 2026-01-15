@@ -95,7 +95,7 @@ export default function ReplenishmentPage() {
   return (
     <div className="space-y-6">
       <Card>
-        <CardHeader className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle>Necesidades de reposicion</CardTitle>
             <CardDescription>
@@ -257,7 +257,7 @@ export default function ReplenishmentPage() {
       </Card>
 
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <CardTitle>Resumen por marca</CardTitle>
             <CardDescription>Agrupado por costo estimado con ultimo costo.</CardDescription>

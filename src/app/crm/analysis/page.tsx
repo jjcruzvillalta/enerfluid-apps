@@ -158,10 +158,10 @@ export default function CrmAnalysisPage() {
           <h1 className="text-2xl font-semibold text-slate-800">Analisis</h1>
           <p className="text-sm text-slate-500">Indicadores clave por actividad y oportunidades ganadas.</p>
         </div>
-        <div className="flex items-center gap-2 text-sm text-slate-600">
+        <div className="flex flex-col gap-2 text-sm text-slate-600 sm:flex-row sm:items-center">
           <span>Filtrar por responsable</span>
           <select
-            className="h-10 rounded-xl border border-line bg-white px-3 text-sm text-ink shadow-sm"
+            className="h-10 w-full rounded-xl border border-line bg-white px-3 text-sm text-ink shadow-sm sm:w-auto"
             value={userFilter}
             onChange={(event) => setUserFilter(event.target.value)}
           >
@@ -197,7 +197,10 @@ export default function CrmAnalysisPage() {
         <h2 className="text-sm font-semibold text-slate-700">Ultimas actividades</h2>
         <div className="mt-4 space-y-3">
           {data?.recentActivities?.map((row) => (
-            <div key={row.id} className="flex items-center justify-between text-sm text-slate-600">
+            <div
+              key={row.id}
+              className="flex flex-col gap-1 text-sm text-slate-600 sm:flex-row sm:items-center sm:justify-between"
+            >
               <span>
                 {row.type_name || "Actividad"} / {row.client_name || "-"} / {row.responsible_name || "-"}
               </span>
