@@ -25,7 +25,12 @@ export default function InventorySettingsPage() {
         const res = await fetch("/api/roles?app=inventory", { cache: "no-store", credentials: "include" });
         if (!res.ok) return;
         const data = await res.json();
-        setRoles(data?.users || []);
+        const sorted = (data?.users || []).slice().sort((a: RoleRow, b: RoleRow) => {
+          const aName = (a.display_name || a.username || "").toLowerCase();
+          const bName = (b.display_name || b.username || "").toLowerCase();
+          return aName.localeCompare(bName);
+        });
+        setRoles(sorted);
       } finally {
         setRolesLoading(false);
       }
@@ -54,8 +59,8 @@ export default function InventorySettingsPage() {
             <table className="w-full text-sm">
               <thead className="text-xs uppercase text-slate-500 bg-mist">
                 <tr>
-                  <th className="px-3 py-2 text-left">Usuario</th>
                   <th className="px-3 py-2 text-left">Nombre</th>
+                  <th className="px-3 py-2 text-left">Usuario</th>
                   <th className="px-3 py-2 text-left">Rol</th>
                   <th className="px-3 py-2 text-left">Estado</th>
                 </tr>
@@ -63,8 +68,8 @@ export default function InventorySettingsPage() {
               <tbody>
                 {roles.map((row) => (
                   <tr key={row.id} className="border-t border-slate-100">
-                    <td className="px-3 py-2 font-medium text-slate-800">{row.username}</td>
-                    <td className="px-3 py-2">{row.display_name || "-"}</td>
+                    <td className="px-3 py-2 font-medium text-slate-800">{row.display_name || "-"}</td>
+                    <td className="px-3 py-2">{row.username}</td>
                     <td className="px-3 py-2">{row.role || "none"}</td>
                     <td className="px-3 py-2">{row.is_active === false ? "Inactivo" : "Activo"}</td>
                   </tr>

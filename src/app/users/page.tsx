@@ -46,7 +46,12 @@ export default function UsersPage() {
       const res = await fetch("/api/users", { cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json();
-      setUsers(data?.users || []);
+      const sorted = (data?.users || []).slice().sort((a: UserRow, b: UserRow) => {
+        const aName = (a.display_name || a.username || "").toLowerCase();
+        const bName = (b.display_name || b.username || "").toLowerCase();
+        return aName.localeCompare(bName);
+      });
+      setUsers(sorted);
     } finally {
       setLoading(false);
     }
@@ -124,8 +129,8 @@ export default function UsersPage() {
           <table className="w-full text-sm">
             <thead className="bg-mist text-xs uppercase text-slate-500">
               <tr>
-                <th className="px-3 py-2 text-left">Usuario</th>
                 <th className="px-3 py-2 text-left">Nombre</th>
+                <th className="px-3 py-2 text-left">Usuario</th>
                 <th className="px-3 py-2 text-left">Roles</th>
                 <th className="px-3 py-2 text-right">Acciones</th>
               </tr>
@@ -133,8 +138,8 @@ export default function UsersPage() {
             <tbody>
               {users.map((row) => (
                 <tr key={row.id} className="border-t border-slate-100">
-                  <td className="px-3 py-2 font-medium text-slate-800">{row.username}</td>
-                  <td className="px-3 py-2">{row.display_name}</td>
+                  <td className="px-3 py-2 font-medium text-slate-800">{row.display_name || "-"}</td>
+                  <td className="px-3 py-2">{row.username}</td>
                   <td className="px-3 py-2 text-xs text-slate-600">
                     <div className="flex flex-wrap gap-2">
                       {Object.keys(defaultRoles).map((appKey) => {
